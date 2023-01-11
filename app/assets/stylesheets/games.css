@@ -1,0 +1,19 @@
+.game-logo {
+  width: 120px;
+}
+
+.game-help-used {
+  opacity: 0.5;
+}
+
+.btn-fill {
+  width: 100%;
+}
+
+.btn-variant {
+  width: calc(100% - 40px);
+}
+
+.variant {
+  width: 40px;
+}
