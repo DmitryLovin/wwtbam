@@ -50,6 +50,50 @@ RSpec.describe Game, type: :model do
       expect(game.prize).to eq Game::PRIZES[level]
       expect(user.balance).to eq Game::PRIZES[level]
     end
+
+    context ".answer_current_question!" do
+      it "correct answer" do
+        level = game_w_questions.current_level
+        q = game_w_questions.current_game_question
+        game_w_questions.answer_current_question!(q.correct_answer_key)
+        expect(game_w_questions.status).to eq(:in_progress)
+        expect(game_w_questions.current_level).to eq(level + 1)
+      end
+
+      it "wrong answer" do
+        game_w_questions.answer_current_question!("e")
+
+        expect(game_w_questions.status).to eq(:fail)
+        expect(game_w_questions.finished?).to be_truthy
+      end
+
+      it "timeout with wrong answer" do
+        game_w_questions.created_at -= (Game::TIME_LIMIT + 10.minutes)
+        game_w_questions.answer_current_question!("e")
+
+        expect(game_w_questions.status).to eq(:timeout)
+        expect(game_w_questions.finished?).to be_truthy
+      end
+
+      it "timeout with right answer" do
+        game_w_questions.created_at -= (Game::TIME_LIMIT + 10.minutes)
+        q = game_w_questions.current_game_question
+        game_w_questions.answer_current_question!(q.correct_answer_key)
+
+        expect(game_w_questions.status).to eq(:timeout)
+        expect(game_w_questions.finished?).to be_truthy
+      end
+
+      it "won" do
+        game_w_questions.current_level = 14
+        q = game_w_questions.current_game_question
+        game_w_questions.answer_current_question!(q.correct_answer_key)
+
+        expect(game_w_questions.status).to eq(:won)
+        expect(game_w_questions.finished?).to be_truthy
+        expect(game_w_questions.prize).to eq(1000000)
+      end
+    end
   end
 
   context "Game .status" do
@@ -82,12 +126,12 @@ RSpec.describe Game, type: :model do
   context "game methods" do
     it "correct .current_game_question" do
       game = FactoryBot.create(:game)
-      level = game_w_questions.current_level
+      level = game.current_level
       q = FactoryBot.create(:question, level: level)
       game_question = FactoryBot.create(:game_question, game: game, question: q)
       expect(game.current_game_question).to eq(game_question)
     end
-    
+
     it "correct .previous_level" do
       expect(game_w_questions.previous_level).to eq(-1)
     end
