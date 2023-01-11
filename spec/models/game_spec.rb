@@ -78,4 +78,18 @@ RSpec.describe Game, type: :model do
       expect(game_w_questions.status).to eq(:money)
     end
   end
+
+  context "game methods" do
+    it "correct .current_game_question" do
+      game = FactoryBot.create(:game)
+      level = game_w_questions.current_level
+      q = FactoryBot.create(:question, level: level)
+      game_question = FactoryBot.create(:game_question, game: game, question: q)
+      expect(game.current_game_question).to eq(game_question)
+    end
+    
+    it "correct .previous_level" do
+      expect(game_w_questions.previous_level).to eq(-1)
+    end
+  end
 end
