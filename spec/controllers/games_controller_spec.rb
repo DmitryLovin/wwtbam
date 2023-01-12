@@ -16,6 +16,64 @@ RSpec.describe GamesController, type: :controller do
         expect(flash[:alert]).to be
       end
     end
+
+    describe ".create" do
+      it "redirects to sign_in" do
+        post :create
+
+        game = assigns(:game)
+
+        expect(game).to be_nil
+
+        expect(response).to redirect_to(new_user_session_path)
+        expect(flash[:alert]).to be
+      end
+    end
+
+    describe ".answer" do
+      it "redirects to sign_in" do
+        put :answer, params: {
+          id: game_w_questions.id,
+          letter: game_w_questions.current_game_question.correct_answer_key
+        }
+
+        game = assigns(:game)
+
+        expect(game).to be_nil
+
+        expect(response).to redirect_to(new_user_session_path)
+        expect(flash[:alert]).to be
+      end
+    end
+
+    describe ".take_money" do
+      it "redirects to sign_in" do
+        put :take_money, params: { id: game_w_questions.id }
+
+        game = assigns(:game)
+
+        expect(game).to be_nil
+
+        expect(response).to redirect_to(new_user_session_path)
+        expect(flash[:alert]).to be
+      end
+    end
+
+    describe ".help" do
+      it "redirects to sign_in" do
+        put :help, params: {
+          id: game_w_questions.id,
+          help_type: :fifty_fifty
+        }
+
+        game = assigns(:game)
+
+        expect(game).to be_nil
+
+        expect(response).to redirect_to(new_user_session_path)
+        expect(flash[:alert]).to be
+      end
+    end
   end
 
   context "usual user" do
