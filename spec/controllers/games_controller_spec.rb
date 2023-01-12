@@ -95,6 +95,21 @@ RSpec.describe GamesController, type: :controller do
         expect(response).to redirect_to(game_path(game))
         expect(flash.empty?).to be_truthy
       end
+
+      it "finish the game due the wrong answer" do
+        put :answer, params: {
+          id: game_w_questions.id,
+          letter: "e"
+        }
+
+        game = assigns(:game)
+
+        expect(game.finished?).to be_truthy
+        expect(game.status).to eq(:fail)
+
+        expect(response).to redirect_to(user_path(game.user))
+        expect(flash[:alert]).to be
+      end
     end
 
     describe ".create" do
