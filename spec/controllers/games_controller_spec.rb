@@ -6,58 +6,116 @@ RSpec.describe GamesController, type: :controller do
   let(:admin) { FactoryBot.create(:user, is_admin: true) }
   let(:game_w_questions) { FactoryBot.create(:game_with_questions, user: user) }
 
-  context "Anon" do
-    it "kick from #show" do
-      get :show, params: { id: game_w_questions.id }
+  context "anon user" do
+    describe ".show" do
+      it "redirects to sign_in" do
+        get :show, params: { id: game_w_questions.id }
 
-      expect(response.status).not_to eq(200)
-      expect(response).to redirect_to(new_user_session_path)
-      expect(flash[:alert]).to be
+        expect(response.status).not_to eq(200)
+        expect(response).to redirect_to(new_user_session_path)
+        expect(flash[:alert]).to be
+      end
     end
   end
 
-  context "Usual user" do
+  context "usual user" do
     before(:each) do
-      sign_in user
+      sign_in(user)
     end
 
-    it "creates game" do
-      generate_questions(60)
+    describe ".answer" do
+      it "continue the game" do
+        put :answer, params: {
+          id: game_w_questions.id,
+          letter: game_w_questions.current_game_question.correct_answer_key
+        }
 
-      post :create
+        game = assigns(:game)
 
-      game = assigns(:game)
-
-      expect(game.finished?).to be_falsey
-      expect(game.user).to eq(user)
-
-      expect(response).to redirect_to(game_path(game))
-      expect(flash[:notice]).to be
+        expect(game.finished?).to be_falsey
+        expect(game.current_level).to be > 0
+        expect(response).to redirect_to(game_path(game))
+        expect(flash.empty?).to be_truthy
+      end
     end
 
-    it "#show game" do
-      get :show, params: { id: game_w_questions.id }
+    describe ".create" do
+      it "creates game" do
+        generate_questions(60)
 
-      game = assigns(:game)
-      expect(game.finished?).to be_falsey
-      expect(game.user).to eq(user)
+        post :create
 
-      expect(response.status).to eq(200)
-      expect(response).to render_template("show")
+        game = assigns(:game)
+
+        expect(game.finished?).to be_falsey
+        expect(game.user).to eq(user)
+
+        expect(response).to redirect_to(game_path(game))
+        expect(flash[:notice]).to be
+      end
+
+      it "redirect to first when trying to create second" do
+        expect(game_w_questions.finished?).to be_falsey
+        expect { post :create }.to change(Game, :count).by(0)
+
+        game = assigns(:game)
+        expect(game).to be_nil
+
+        expect(response).to redirect_to(game_path(game_w_questions))
+        expect(flash[:alert]).to be
+      end
     end
 
-    it "answer correct" do
-      put :answer, params: {
-        id: game_w_questions.id,
-        letter: game_w_questions.current_game_question.correct_answer_key
-      }
+    describe ".show" do
+      it "render the game" do
+        get :show, params: { id: game_w_questions.id }
 
-      game = assigns(:game)
+        game = assigns(:game)
+        expect(game.finished?).to be_falsey
+        expect(game.user).to eq(user)
 
-      expect(game.finished?).to be_falsey
-      expect(game.current_level).to be > 0
-      expect(response).to redirect_to(game_path(game))
-      expect(flash.empty?).to be_truthy
+        expect(response.status).to eq(200)
+        expect(response).to render_template("show")
+      end
+    end
+
+    describe ".take_money" do
+      it "gives user money" do
+        game_w_questions.update_attribute(:current_level, 3)
+
+        put :take_money, params: { id: game_w_questions.id }
+
+        game = assigns(:game)
+
+        expect(game.finished?).to be_truthy
+        expect(game.prize).to be > 0
+
+        user.reload
+        expect(user.balance).to be > 0
+
+        expect(response).to redirect_to(user_path(game.user))
+        expect(flash[:warning]).to be
+      end
+    end
+  end
+
+  context "second user" do
+    let(:second_user) { FactoryBot.create(:user) }
+    before(:each) do
+      sign_in(second_user)
+    end
+
+    describe ".show" do
+      it "not #show the game for second user" do
+        second_user = FactoryBot.create(:user)
+        sign_in(second_user)
+
+        get :show, params: { id: game_w_questions.id }
+
+        expect(response.status).not_to eq(200)
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to be
+      end
     end
   end
 end
