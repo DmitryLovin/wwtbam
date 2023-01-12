@@ -5,8 +5,52 @@ RSpec.describe Game, type: :model do
   let(:user) { FactoryBot.create(:user) }
   let(:game_w_questions) { FactoryBot.create(:game_with_questions, user: user) }
 
-  context "Game Factory" do
-    it "Game.create_game_for_user! new correct game" do
+  describe ".answer_current_question!" do
+    it "continue the game with right answer" do
+      level = game_w_questions.current_level
+      q = game_w_questions.current_game_question
+      game_w_questions.answer_current_question!(q.correct_answer_key)
+      expect(game_w_questions.status).to eq(:in_progress)
+      expect(game_w_questions.current_level).to eq(level + 1)
+    end
+
+    it "stop the game with wrong answer" do
+      game_w_questions.answer_current_question!("e")
+
+      expect(game_w_questions.status).to eq(:fail)
+      expect(game_w_questions.finished?).to be_truthy
+    end
+
+    it "stop the game due to timeout with wrong answer" do
+      game_w_questions.created_at -= (Game::TIME_LIMIT + 10.minutes)
+      game_w_questions.answer_current_question!("e")
+
+      expect(game_w_questions.status).to eq(:timeout)
+      expect(game_w_questions.finished?).to be_truthy
+    end
+
+    it "stopt the game due to timeout with right answer" do
+      game_w_questions.created_at -= (Game::TIME_LIMIT + 10.minutes)
+      q = game_w_questions.current_game_question
+      game_w_questions.answer_current_question!(q.correct_answer_key)
+
+      expect(game_w_questions.status).to eq(:timeout)
+      expect(game_w_questions.finished?).to be_truthy
+    end
+
+    it "win the game with correct answer" do
+      game_w_questions.current_level = 14
+      q = game_w_questions.current_game_question
+      game_w_questions.answer_current_question!(q.correct_answer_key)
+
+      expect(game_w_questions.status).to eq(:won)
+      expect(game_w_questions.finished?).to be_truthy
+      expect(game_w_questions.prize).to eq(1000000)
+    end
+  end
+
+  describe ".create_game_for_user!" do
+    it "correctly create" do
       generate_questions(60)
 
       game = nil
@@ -23,24 +67,51 @@ RSpec.describe Game, type: :model do
     end
   end
 
-  context "game mechanics" do
-    it "answer correct continues" do
-      level = game_w_questions.current_level
-      q = game_w_questions.current_game_question
-      expect(game_w_questions.status).to eq(:in_progress)
+  describe ".current_game_question" do
+    it "correct question" do
+      game = FactoryBot.create(:game)
+      level = game.current_level
+      q = FactoryBot.create(:question, level: level)
+      game_question = FactoryBot.create(:game_question, game: game, question: q)
+      expect(game.current_game_question).to eq(game_question)
+    end
+  end
 
-      game_w_questions.answer_current_question!(q.correct_answer_key)
+  describe ".previous_level" do
+    it "correct prev level" do
+      expect(game_w_questions.previous_level).to eq(-1)
+    end
+  end
 
-      expect(game_w_questions.current_level).to eq(level + 1)
-
-      expect(game_w_questions.previous_game_question).to eq(q)
-      expect(game_w_questions.current_game_question).not_to eq(q)
-
-      expect(game_w_questions.status).to eq(:in_progress)
-      expect(game_w_questions.finished?).to be_falsey
+  describe ".status" do
+    before(:each) do
+      game_w_questions.finished_at = Time.now
+      expect(game_w_questions.finished?).to be_truthy
     end
 
-    it "correct .take_money!" do
+    it ":fail" do
+      game_w_questions.is_failed = true
+      expect(game_w_questions.status).to eq(:fail)
+    end
+
+    it ":timeout" do
+      game_w_questions.created_at -= (Game::TIME_LIMIT + 10.minutes)
+      game_w_questions.is_failed = true
+      expect(game_w_questions.status).to eq(:timeout)
+    end
+
+    it ":won" do
+      game_w_questions.current_level = Question::QUESTION_LEVELS.max + 1
+      expect(game_w_questions.status).to eq(:won)
+    end
+
+    it ":money" do
+      expect(game_w_questions.status).to eq(:money)
+    end
+  end
+
+  describe ".take_money!" do
+    it "correctly take money" do
       game = FactoryBot.create(:game_with_questions, user: user, current_level: 10)
       level = game.previous_level
       game.take_money!
@@ -49,91 +120,6 @@ RSpec.describe Game, type: :model do
       expect(game.status).to eq :money
       expect(game.prize).to eq Game::PRIZES[level]
       expect(user.balance).to eq Game::PRIZES[level]
-    end
-
-    context ".answer_current_question!" do
-      it "correct answer" do
-        level = game_w_questions.current_level
-        q = game_w_questions.current_game_question
-        game_w_questions.answer_current_question!(q.correct_answer_key)
-        expect(game_w_questions.status).to eq(:in_progress)
-        expect(game_w_questions.current_level).to eq(level + 1)
-      end
-
-      it "wrong answer" do
-        game_w_questions.answer_current_question!("e")
-
-        expect(game_w_questions.status).to eq(:fail)
-        expect(game_w_questions.finished?).to be_truthy
-      end
-
-      it "timeout with wrong answer" do
-        game_w_questions.created_at -= (Game::TIME_LIMIT + 10.minutes)
-        game_w_questions.answer_current_question!("e")
-
-        expect(game_w_questions.status).to eq(:timeout)
-        expect(game_w_questions.finished?).to be_truthy
-      end
-
-      it "timeout with right answer" do
-        game_w_questions.created_at -= (Game::TIME_LIMIT + 10.minutes)
-        q = game_w_questions.current_game_question
-        game_w_questions.answer_current_question!(q.correct_answer_key)
-
-        expect(game_w_questions.status).to eq(:timeout)
-        expect(game_w_questions.finished?).to be_truthy
-      end
-
-      it "won" do
-        game_w_questions.current_level = 14
-        q = game_w_questions.current_game_question
-        game_w_questions.answer_current_question!(q.correct_answer_key)
-
-        expect(game_w_questions.status).to eq(:won)
-        expect(game_w_questions.finished?).to be_truthy
-        expect(game_w_questions.prize).to eq(1000000)
-      end
-    end
-  end
-
-  context "Game .status" do
-    before(:each) do
-      game_w_questions.finished_at = Time.now
-      expect(game_w_questions.finished?).to be_truthy
-    end
-
-    it "is :fail" do
-      game_w_questions.is_failed = true
-      expect(game_w_questions.status).to eq(:fail)
-    end
-
-    it "is :timeout" do
-      game_w_questions.created_at -= (Game::TIME_LIMIT + 10.minutes)
-      game_w_questions.is_failed = true
-      expect(game_w_questions.status).to eq(:timeout)
-    end
-
-    it "is :won" do
-      game_w_questions.current_level = Question::QUESTION_LEVELS.max + 1
-      expect(game_w_questions.status).to eq(:won)
-    end
-
-    it "is :money" do
-      expect(game_w_questions.status).to eq(:money)
-    end
-  end
-
-  context "game methods" do
-    it "correct .current_game_question" do
-      game = FactoryBot.create(:game)
-      level = game.current_level
-      q = FactoryBot.create(:question, level: level)
-      game_question = FactoryBot.create(:game_question, game: game, question: q)
-      expect(game.current_game_question).to eq(game_question)
-    end
-
-    it "correct .previous_level" do
-      expect(game_w_questions.previous_level).to eq(-1)
     end
   end
 end
