@@ -275,6 +275,24 @@ RSpec.describe GamesController, type: :controller do
       it "has info flash" do
         expect(flash[:info]).to be
       end
+
+      context "next question with already used help" do
+        before do
+          game_w_questions.current_level += 1
+          put :help, params: {
+            id: game_w_questions.id,
+            help_type: :fifty_fifty
+          }
+        end
+
+        it "redirects to game page" do
+          expect(response).to redirect_to(game_path(game_w_questions))
+        end
+
+        it "has alert flash" do
+          expect(flash[:alert]).to be
+        end
+      end
     end
 
     describe "#show" do
