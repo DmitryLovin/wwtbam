@@ -3,6 +3,26 @@ require "rails_helper"
 RSpec.describe GameQuestion, type: :model do
   let(:game_question) { FactoryBot.create(:game_question, a: 2, b: 1, c: 4, d: 3) }
 
+  describe "#apply_help!" do
+    context ":fifty_fifty" do
+      before do
+        game_question.apply_help!(:fifty_fifty)
+      end
+
+      it "adds help hash" do
+        expect(game_question.help_hash).to include(:fifty_fifty)
+      end
+
+      it "has only 2 answers" do
+        expect(game_question.help_hash[:fifty_fifty].size).to eq(2)
+      end
+
+      it "has correct answer" do
+        expect(game_question.help_hash[:fifty_fifty]).to include(game_question.correct_answer_key)
+      end
+    end
+  end
+
   describe "#answer_correct?" do
     it "true" do
       expect(game_question.answer_correct?("b")).to be_truthy
@@ -12,6 +32,23 @@ RSpec.describe GameQuestion, type: :model do
   describe "#correct_answer_key" do
     it "correct answer key" do
       expect(game_question.correct_answer_key).to eq("b")
+    end
+  end
+
+  describe "#help_hash" do
+    before do
+      game_question.help_hash[:key] = "test hash"
+    end
+
+    it "adds key to help hash" do
+      expect(game_question.help_hash).to include(:key) and eq("test hash")
+    end
+
+    it "loads saved help hash from db" do
+      game_question.save
+      loaded_game_question = GameQuestion.find(game_question.id)
+
+      expect(loaded_game_question.help_hash).to eq({ key: "test hash" })
     end
   end
 
