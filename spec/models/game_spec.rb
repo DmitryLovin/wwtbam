@@ -53,7 +53,7 @@ RSpec.describe Game, type: :model do
     end
   end
 
-  describe "#create_game_for_user!" do
+  describe ".create_game_for_user!" do
     it "correctly create" do
       generate_questions(60)
 
