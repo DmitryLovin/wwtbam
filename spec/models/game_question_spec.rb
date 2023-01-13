@@ -21,6 +21,20 @@ RSpec.describe GameQuestion, type: :model do
         expect(game_question.help_hash[:fifty_fifty]).to include(game_question.correct_answer_key)
       end
     end
+
+    context ":friend_call" do
+      before do
+        game_question.apply_help!(:friend_call)
+      end
+
+      it "adds help hash" do
+        expect(game_question.help_hash).to include(:friend_call)
+      end
+
+      it "is a string" do
+        expect(game_question.help_hash[:friend_call]).to be_a(String)
+      end
+    end
   end
 
   describe "#answer_correct?" do
