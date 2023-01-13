@@ -13,8 +13,8 @@ RSpec.describe GamesController, type: :controller do
         get :show, params: { id: game_w_questions.id }
       end
 
-      it "has status 200" do
-        expect(response.status).not_to eq(200)
+      it "has response status 302" do
+        expect(response.status).to eq(302)
       end
 
       it "redirects to sing in" do
@@ -33,6 +33,10 @@ RSpec.describe GamesController, type: :controller do
 
       it "does not create a game" do
         expect(game).to be_nil
+      end
+
+      it "has response status 302" do
+        expect(response.status).to eq(302)
       end
 
       it "redirects to sign in" do
@@ -56,6 +60,10 @@ RSpec.describe GamesController, type: :controller do
         expect(game).to be_nil
       end
 
+      it "has response status 302" do
+        expect(response.status).to eq(302)
+      end
+
       it "redirects to sign_in" do
         expect(response).to redirect_to(new_user_session_path)
       end
@@ -72,6 +80,10 @@ RSpec.describe GamesController, type: :controller do
 
       it "does not assign the game" do
         expect(game).to be_nil
+      end
+
+      it "has response status 302" do
+        expect(response.status).to eq(302)
       end
 
       it "redirects to sign_in" do
@@ -93,6 +105,10 @@ RSpec.describe GamesController, type: :controller do
 
       it "does not assign the game" do
         expect(game).to be_nil
+      end
+
+      it "has response status 302" do
+        expect(response.status).to eq(302)
       end
 
       it "redirects to sign_in" do
@@ -127,6 +143,10 @@ RSpec.describe GamesController, type: :controller do
           expect(game.current_level).to be > 0
         end
 
+        it "has response status 302" do
+          expect(response.status).to eq(302)
+        end
+
         it "redirect to current game" do
           expect(response).to redirect_to(game_path(game))
         end
@@ -150,6 +170,10 @@ RSpec.describe GamesController, type: :controller do
 
         it "has status :fail" do
           expect(game.status).to eq(:fail)
+        end
+
+        it "has response status 302" do
+          expect(response.status).to eq(302)
         end
 
         it "redirects to user page" do
@@ -180,6 +204,10 @@ RSpec.describe GamesController, type: :controller do
           expect(game.user).to eq(user)
         end
 
+        it "has response status 302" do
+          expect(response.status).to eq(302)
+        end
+
         it "redirects to game page" do
           expect(response).to redirect_to(game_path(game))
         end
@@ -202,6 +230,11 @@ RSpec.describe GamesController, type: :controller do
           expect(game).to be_nil
         end
 
+        it "has response status 302" do
+          subject
+          expect(response.status).to eq(302)
+        end
+
         it "redirects to first game" do
           subject
           expect(response).to redirect_to(game_path(existing_game))
@@ -211,6 +244,36 @@ RSpec.describe GamesController, type: :controller do
           subject
           expect(flash[:alert]).to be
         end
+      end
+    end
+
+    describe "#help" do
+      before do
+        put :help, params: {
+          id: game_w_questions.id,
+          help_type: :fifty_fifty
+        }
+      end
+
+      it "assign the game" do
+        expect(game).not_to be_nil
+      end
+
+      it "uses help" do
+        game_w_questions.reload
+        expect(game_w_questions.fifty_fifty_used?).to be_truthy
+      end
+
+      it "has response status 302" do
+        expect(response.status).to eq(302)
+      end
+
+      it "redirects to sign_in" do
+        expect(response).to redirect_to(game_path(game_w_questions))
+      end
+
+      it "has info flash" do
+        expect(flash[:info]).to be
       end
     end
 
@@ -255,6 +318,10 @@ RSpec.describe GamesController, type: :controller do
         expect(user.balance).to be > 0
       end
 
+      it "has response status 302" do
+        expect(response.status).to eq(302)
+      end
+
       it "redirects to user page" do
         expect(response).to redirect_to(user_path(game.user))
       end
@@ -276,8 +343,8 @@ RSpec.describe GamesController, type: :controller do
         get :show, params: { id: game_w_questions.id }
       end
 
-      it "does not have response status 200" do
-        expect(response.status).not_to eq(200)
+      it "has response status 302" do
+        expect(response.status).to eq(302)
       end
 
       it "redirects to root page" do
