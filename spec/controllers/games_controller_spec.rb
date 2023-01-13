@@ -278,7 +278,8 @@ RSpec.describe GamesController, type: :controller do
 
       context "next question with already used help" do
         before do
-          game_w_questions.current_level += 1
+          game_w_questions.answer_current_question!(game_w_questions.current_game_question.correct_answer_key)
+          game_w_questions.reload
           put :help, params: {
             id: game_w_questions.id,
             help_type: :fifty_fifty
