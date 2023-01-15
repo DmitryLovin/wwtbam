@@ -23,16 +23,20 @@ RSpec.describe GameQuestion, type: :model do
     end
 
     context ":friend_call" do
-      before do
-        game_question.apply_help!(:friend_call)
+      subject { game_question.apply_help!(:friend_call) }
+
+      it "wasn't used before" do
+        expect(game_question.help_hash).not_to include(:friend_call)
       end
 
       it "adds help hash" do
+        subject
         expect(game_question.help_hash).to include(:friend_call)
       end
 
-      it "is a string" do
-        expect(game_question.help_hash[:friend_call]).to be_a(String)
+      it "contains string" do
+        subject
+        expect(game_question.help_hash[:friend_call]).to include("считает, что это вариант")
       end
     end
   end
