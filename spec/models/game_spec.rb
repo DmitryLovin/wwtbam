@@ -2,8 +2,8 @@ require "rails_helper"
 require "support/my_spec_helper"
 
 RSpec.describe Game, type: :model do
-  let(:user) { FactoryBot.create(:user) }
-  let(:game_w_questions) { FactoryBot.create(:game_with_questions, user: user) }
+  let(:user) { create(:user) }
+  let(:game_w_questions) { create(:game_with_questions, user: user) }
 
   describe "#answer_current_question!" do
     context "with right answer" do
@@ -73,10 +73,10 @@ RSpec.describe Game, type: :model do
 
   describe "#current_game_question" do
     it "correct question" do
-      game = FactoryBot.create(:game)
+      game = create(:game)
       level = game.current_level
-      q = FactoryBot.create(:question, level: level)
-      game_question = FactoryBot.create(:game_question, game: game, question: q)
+      q = create(:question, level: level)
+      game_question = create(:game_question, game: game, question: q)
       expect(game.current_game_question).to eq(game_question)
     end
   end
@@ -116,7 +116,7 @@ RSpec.describe Game, type: :model do
 
   describe "#take_money!" do
     it "correctly take money" do
-      game = FactoryBot.create(:game_with_questions, user: user, current_level: 10)
+      game = create(:game_with_questions, user: user, current_level: 10)
       level = game.previous_level
       game.take_money!
 

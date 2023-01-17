@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Question, type: :model do
   context "validation check" do
-    subject { FactoryBot.create(:question) }
+    subject { create(:question) }
 
     it { should validate_presence_of :text }
     it { should validate_uniqueness_of :text }

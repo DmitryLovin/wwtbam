@@ -3,8 +3,8 @@ require "rails_helper"
 RSpec.describe "users/index", type: :view do
   before do
     assign(:users, [
-      FactoryBot.build_stubbed(:user, name: "John", balance: 5000),
-      FactoryBot.build_stubbed(:user, name: "Mike", balance: 3000)
+      build_stubbed(:user, name: "John", balance: 5000),
+      build_stubbed(:user, name: "Mike", balance: 3000)
     ])
 
     render
