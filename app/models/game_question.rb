@@ -36,6 +36,8 @@ class GameQuestion < ApplicationRecord
     self.send("add_#{help_type}")
   end
 
+  private
+
   def add_fifty_fifty
     self.help_hash[:fifty_fifty] = [
       correct_answer_key,
@@ -55,8 +57,6 @@ class GameQuestion < ApplicationRecord
     self.help_hash[:friend_call] = GameHelpGenerator.friend_call(keys_to_use, correct_answer_key)
     save
   end
-
-  private
 
   def keys_to_use_in_help
     keys_to_use = variants.keys

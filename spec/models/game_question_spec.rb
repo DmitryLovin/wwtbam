@@ -4,7 +4,7 @@ RSpec.describe GameQuestion, type: :model do
   let(:game_question) { create(:game_question, a: 2, b: 1, c: 4, d: 3) }
 
   describe "#apply_help!" do
-    context ":fifty_fifty" do
+    context "when help type is :fifty_fifty" do
       before do
         game_question.apply_help!(:fifty_fifty)
       end
@@ -22,21 +22,27 @@ RSpec.describe GameQuestion, type: :model do
       end
     end
 
-    context ":friend_call" do
-      subject { game_question.apply_help!(:friend_call) }
-
-      it "wasn't used before" do
-        expect(game_question.help_hash).not_to include(:friend_call)
+    context "when help type is :friend_call" do
+      context "when help wasn't used yet" do
+        it "doesn't have hash" do
+          expect(game_question.help_hash).not_to include(:friend_call)
+        end
       end
 
-      it "adds help hash" do
-        subject
-        expect(game_question.help_hash).to include(:friend_call)
-      end
+      context "when help was used" do
+        before do
+          game_question.apply_help!(:friend_call)
+        end
 
-      it "contains string" do
-        subject
-        expect(game_question.help_hash[:friend_call]).to include("считает, что это вариант")
+        it "adds help hash" do
+          subject
+          expect(game_question.help_hash).to include(:friend_call)
+        end
+
+        it "contains string" do
+          subject
+          expect(game_question.help_hash[:friend_call]).to include("считает, что это вариант")
+        end
       end
     end
   end
