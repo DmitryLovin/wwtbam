@@ -2,21 +2,25 @@ require "rails_helper"
 
 RSpec.feature "USER visit user page", type: :feature do
   let(:user_w_games) { create(:user) }
-  let!(:games) { [
-    create(:game,
-           user: user_w_games,
-           current_level: 10,
-           prize: 15000,
-           created_at: Time.parse("2023-01-16, 13:10 UTC"),
-           finished_at: Time.parse("2023-01-16, 13:30 UTC")
-    ),
-    create(:game,
-           user: user_w_games,
-           current_level: 12,
-           prize: 17000,
-           created_at: Time.parse("2023-01-17, 12:12 UTC")
-    )
-  ] }
+  let!(:games) do
+    [
+      create(
+        :game,
+        user: user_w_games,
+        current_level: 10,
+        prize: 15000,
+        created_at: Time.parse("2023-01-16, 13:10 UTC"),
+        finished_at: Time.parse("2023-01-16, 13:30 UTC")
+      ),
+      create(
+        :game,
+        user: user_w_games,
+        current_level: 12,
+        prize: 17000,
+        created_at: Time.parse("2023-01-17, 12:12 UTC")
+      )
+    ]
+  end
 
   scenario "success" do
     visit "/users/#{user_w_games.id}"
