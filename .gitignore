@@ -35,7 +35,4 @@
 
 /node_modules
 /node_modules/*
-/config/credentials.yml.enc
-/yarn.lock
 /yarn-error.log
-/Gemfile.lock
